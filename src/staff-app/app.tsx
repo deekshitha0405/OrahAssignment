@@ -1,3 +1,4 @@
+import { Provider } from "jotai"
 import React from "react"
 import { Routes, Route } from "react-router-dom"
 import "shared/helpers/load-icons"
@@ -7,14 +8,14 @@ import { ActivityPage } from "staff-app/platform/activity.page"
 
 function App() {
   return (
-    <>
+    <Provider>
       <Header />
       <Routes>
         <Route path="daily-care" element={<HomeBoardPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="*" element={<div>No Match</div>} />
       </Routes>
-    </>
+    </Provider>
   )
 }
 
