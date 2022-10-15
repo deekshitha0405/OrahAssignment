@@ -15,7 +15,7 @@ import {
 import { Selectbox } from "shared/components/Selectbox";
 import { Input } from "shared/components/Input";
 import { useAtom, useAtomValue } from "jotai";
-import { FilterValue, InputValue, StudentList } from "shared/store/store";
+import { FilterValue, InputValue, StudentList, StudentRoll } from "shared/store/store";
 import { RolllStateType } from "shared/models/roll";
 
 export const HomeBoardPage: React.FC = () => {
@@ -26,7 +26,7 @@ export const HomeBoardPage: React.FC = () => {
   const searchText = useAtomValue(InputValue);
   const [studentList, setStudentList] = useAtom(StudentList);
   const filterValue = useAtomValue(FilterValue);
-
+  const [studentRoll,setStudentRoll]=useAtom(StudentRoll)
   useEffect(() => {
     void getStudents();
   }, [getStudents]);
@@ -43,6 +43,7 @@ export const HomeBoardPage: React.FC = () => {
 
   const onActiveRollAction = (action: ActiveRollAction) => {
     if (action === "exit") {
+      setStudentRoll('')
       setIsRollMode(false);
     }
   };
@@ -80,6 +81,13 @@ export const HomeBoardPage: React.FC = () => {
     setStudentList(studentList.map((el:Person)=>el.id==id?{...el,rollType:next}:{...el}))
   }
 
+  const getRollBasedData=(array:Array<any>)=>{
+  if(studentRoll!='all'&&studentRoll!='')
+    return array.filter((el)=>el.rollType==studentRoll)
+    else
+      return array
+  }
+
   return (
     <>
       <S.PageContainer>
@@ -98,7 +106,7 @@ export const HomeBoardPage: React.FC = () => {
                 No students found with entered name
               </CenteredContainer>
             ) : (
-              sortProducts(getFilteredData())?.map((s: Person) => (
+              sortProducts(getRollBasedData(getFilteredData()))?.map((s: Person) => (
                 <StudentListTile
                   key={s.id}
                   isRollMode={isRollMode}

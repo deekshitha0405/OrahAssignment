@@ -3,8 +3,8 @@ import styled from "styled-components";
 import Button from "@material-ui/core/Button";
 import { BorderRadius, Spacing } from "shared/styles/styles";
 import { RollStateList } from "staff-app/components/roll-state/roll-state-list.component";
-import { useAtomValue } from "jotai";
-import { StudentList } from "shared/store/store";
+import { useAtomValue, useSetAtom } from "jotai";
+import { StudentList,StudentRoll } from "shared/store/store";
 import { Person } from "shared/models/person";
 
 export type ActiveRollAction = "filter" | "exit";
@@ -21,6 +21,7 @@ export const ActiveRollOverlay: React.FC<Props> = (props) => {
     absent: 0,
     late: 0,
   });
+  const setStudentRoll=useSetAtom(StudentRoll)
   useEffect(() => {
     if (studentList) {
       let presentCount = 0;
@@ -50,6 +51,7 @@ export const ActiveRollOverlay: React.FC<Props> = (props) => {
               { type: "late", count: rollTypeCount.late },
               { type: "absent", count: rollTypeCount.absent },
             ]}
+            onItemClick={setStudentRoll}
           />
           <div style={{ marginTop: Spacing.u6 }}>
             <Button color="inherit" onClick={() => onItemClick("exit")}>
