@@ -16,6 +16,7 @@ import { Selectbox } from "shared/components/Selectbox";
 import { Input } from "shared/components/Input";
 import { useAtom, useAtomValue } from "jotai";
 import { FilterValue, InputValue, StudentList } from "shared/store/store";
+import { RolllStateType } from "shared/models/roll";
 
 export const HomeBoardPage: React.FC = () => {
   const [isRollMode, setIsRollMode] = useState(false);
@@ -75,6 +76,10 @@ export const HomeBoardPage: React.FC = () => {
         return array;
     }
   };
+  const updateRoll=(next:RolllStateType,id:number)=>{
+    setStudentList(studentList.map((el:Person)=>el.id==id?{...el,rollType:next}:{...el}))
+  }
+
   return (
     <>
       <S.PageContainer>
@@ -98,6 +103,7 @@ export const HomeBoardPage: React.FC = () => {
                   key={s.id}
                   isRollMode={isRollMode}
                   student={s}
+                  updateRoll={updateRoll}
                 />
               ))
             )}
