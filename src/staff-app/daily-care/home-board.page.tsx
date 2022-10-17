@@ -54,7 +54,7 @@ export const HomeBoardPage: React.FC = () => {
       let studentRoll: RolllStateType=[];
       studentList.forEach((el:Person) => {
         if(el.rollType){
-          studentRoll.push({student_id:el.id,roll_state:el.rollType})
+          studentRoll.push({student_id:el.id,roll_state:el.rollType,name:el.first_name+el.last_name})
         }
       });
       submitRoll({student_roll_states:[...studentRoll]})
