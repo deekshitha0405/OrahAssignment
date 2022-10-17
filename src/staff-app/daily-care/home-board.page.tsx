@@ -1,33 +1,105 @@
-import React, { useState, useEffect } from "react"
-import styled from "styled-components"
-import Button from "@material-ui/core/ButtonBase"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Spacing, BorderRadius, FontWeight } from "shared/styles/styles"
-import { Colors } from "shared/styles/colors"
-import { CenteredContainer } from "shared/components/centered-container/centered-container.component"
-import { Person } from "shared/models/person"
-import { useApi } from "shared/hooks/use-api"
-import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component"
-import { ActiveRollOverlay, ActiveRollAction } from "staff-app/components/active-roll-overlay/active-roll-overlay.component"
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import Button from "@material-ui/core/ButtonBase";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Spacing, BorderRadius, FontWeight } from "shared/styles/styles";
+import { Colors } from "shared/styles/colors";
+import { CenteredContainer } from "shared/components/centered-container/centered-container.component";
+import { Person } from "shared/models/person";
+import { useApi } from "shared/hooks/use-api";
+import { StudentListTile } from "staff-app/components/student-list-tile/student-list-tile.component";
+import {
+  ActiveRollOverlay,
+  ActiveRollAction,
+} from "staff-app/components/active-roll-overlay/active-roll-overlay.component";
+import { Selectbox } from "shared/components/Selectbox";
+import { Input } from "shared/components/Input";
+import { useAtom, useAtomValue } from "jotai";
+import { FilterValue, InputValue, StudentList, StudentRoll } from "shared/store/store";
+import { RollInput, RolllStateType } from "shared/models/roll";
 
 export const HomeBoardPage: React.FC = () => {
-  const [isRollMode, setIsRollMode] = useState(false)
-  const [getStudents, data, loadState] = useApi<{ students: Person[] }>({ url: "get-homeboard-students" })
+  const [isRollMode, setIsRollMode] = useState(false);
+  const [getStudents, data, loadState] = useApi<{ students: Person[] }>({
+    url: "get-homeboard-students",
+  });
+  const searchText = useAtomValue(InputValue);
+  const [studentList, setStudentList] = useAtom(StudentList);
+  const filterValue = useAtomValue(FilterValue);
+  const [studentRoll,setStudentRoll]=useAtom(StudentRoll)
+  const [submitRoll, res] = useApi<{ studentRolls: RollInput[] }>({
+    url: "save-roll",
+  });
 
   useEffect(() => {
-    void getStudents()
-  }, [getStudents])
+    void getStudents();
+  }, [getStudents]);
+
+  useEffect(() => {
+    setStudentList(data?.students);
+  }, [data]);
+
 
   const onToolbarAction = (action: ToolbarAction) => {
     if (action === "roll") {
-      setIsRollMode(true)
+      setIsRollMode(true);
     }
-  }
+  };
 
   const onActiveRollAction = (action: ActiveRollAction) => {
     if (action === "exit") {
-      setIsRollMode(false)
+      setStudentRoll('')
     }
+    else{
+      let studentRoll: RolllStateType=[];
+      studentList.forEach((el:Person) => {
+        if(el.rollType){
+          studentRoll.push({student_id:el.id,roll_state:el.rollType,name:el.first_name+el.last_name})
+        }
+      });
+      submitRoll({student_roll_states:[...studentRoll]})
+    }
+    setIsRollMode(false);
+  };
+  const getFilteredData = () => {
+    if (searchText)
+      return studentList.filter((el: Person) => {
+        return (
+          el.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
+          el.last_name.toLowerCase().includes(searchText.toLowerCase())
+        );
+      });
+    else {
+      return studentList;
+    }
+  };
+  const sortProducts = (array: Array<any>) => {
+    switch (String(filterValue)) {
+      case '1':
+        return array.sort((a, b) =>
+          `${a.first_name } ${a.last_name}` < `${a.first_name} ${b.last_name}` ? -1 : 1
+        );
+      case "2":
+        return array.sort((a, b) =>
+         `${ b.first_name} ${b.last_name }`< `${a.first_name} ${a.last_name}` ? -1 : 1
+        );
+      case "3":
+        return array.sort((a, b) => (a.first_name < b.first_name ? -1 : 1));
+      case "4":
+        return array.sort((a, b) => (a.last_name < b.last_name ? -1 : 1));
+      default:
+        return array;
+    }
+  };
+  const updateRoll=(next:RolllStateType,id:number)=>{
+    setStudentList(studentList.map((el:Person)=>el.id==id?{...el,rollType:next}:{...el}))
+  }
+
+  const getRollBasedData=(array:Array<any>)=>{
+  if(studentRoll!='all'&&studentRoll!='')
+    return array.filter((el)=>el.rollType==studentRoll)
+    else
+      return array
   }
 
   return (
@@ -43,9 +115,20 @@ export const HomeBoardPage: React.FC = () => {
 
         {loadState === "loaded" && data?.students && (
           <>
-            {data.students.map((s) => (
-              <StudentListTile key={s.id} isRollMode={isRollMode} student={s} />
-            ))}
+            {getFilteredData()?.length <= 0 ? (
+              <CenteredContainer>
+                No students found with entered name
+              </CenteredContainer>
+            ) : (
+              sortProducts(getRollBasedData(getFilteredData()))?.map((s: Person) => (
+                <StudentListTile
+                  key={s.id}
+                  isRollMode={isRollMode}
+                  student={s}
+                  updateRoll={updateRoll}
+                />
+              ))
+            )}
           </>
         )}
 
@@ -55,25 +138,32 @@ export const HomeBoardPage: React.FC = () => {
           </CenteredContainer>
         )}
       </S.PageContainer>
-      <ActiveRollOverlay isActive={isRollMode} onItemClick={onActiveRollAction} />
+      <ActiveRollOverlay
+        isActive={isRollMode}
+        onItemClick={onActiveRollAction}
+      />
     </>
-  )
-}
+  );
+};
 
-type ToolbarAction = "roll" | "sort"
+type ToolbarAction = "roll" | "sort";
 interface ToolbarProps {
-  onItemClick: (action: ToolbarAction, value?: string) => void
+  onItemClick: (action: ToolbarAction, value?: string) => void;
 }
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { onItemClick } = props
+  const { onItemClick } = props;
   return (
     <S.ToolbarContainer>
-      <div onClick={() => onItemClick("sort")}>First Name</div>
-      <div>Search</div>
+      <div onClick={() => onItemClick("sort")}>
+        <Selectbox />
+      </div>
+      <div>
+        <Input />
+      </div>
       <S.Button onClick={() => onItemClick("roll")}>Start Roll</S.Button>
     </S.ToolbarContainer>
-  )
-}
+  );
+};
 
 const S = {
   PageContainer: styled.div`
@@ -99,4 +189,4 @@ const S = {
       border-radius: ${BorderRadius.default};
     }
   `,
-}
+};
