@@ -7,7 +7,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { StudentList,StudentRoll } from "shared/store/store";
 import { Person } from "shared/models/person";
 
-export type ActiveRollAction = "filter" | "exit";
+export type ActiveRollAction = "exit"|"complete";
 interface Props {
   isActive: boolean;
   onItemClick: (action: ActiveRollAction, value?: string) => void;
@@ -60,7 +60,7 @@ export const ActiveRollOverlay: React.FC<Props> = (props) => {
             <Button
               color="inherit"
               style={{ marginLeft: Spacing.u2 }}
-              onClick={() => onItemClick("exit")}
+              onClick={() => onItemClick("complete")}
             >
               Complete
             </Button>

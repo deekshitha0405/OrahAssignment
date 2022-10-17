@@ -16,7 +16,7 @@ import { Selectbox } from "shared/components/Selectbox";
 import { Input } from "shared/components/Input";
 import { useAtom, useAtomValue } from "jotai";
 import { FilterValue, InputValue, StudentList, StudentRoll } from "shared/store/store";
-import { RolllStateType } from "shared/models/roll";
+import { RollInput, RolllStateType } from "shared/models/roll";
 
 export const HomeBoardPage: React.FC = () => {
   const [isRollMode, setIsRollMode] = useState(false);
@@ -27,6 +27,10 @@ export const HomeBoardPage: React.FC = () => {
   const [studentList, setStudentList] = useAtom(StudentList);
   const filterValue = useAtomValue(FilterValue);
   const [studentRoll,setStudentRoll]=useAtom(StudentRoll)
+  const [submitRoll, res] = useApi<{ studentRolls: RollInput[] }>({
+    url: "save-roll",
+  });
+
   useEffect(() => {
     void getStudents();
   }, [getStudents]);
@@ -34,6 +38,7 @@ export const HomeBoardPage: React.FC = () => {
   useEffect(() => {
     setStudentList(data?.students);
   }, [data]);
+
 
   const onToolbarAction = (action: ToolbarAction) => {
     if (action === "roll") {
@@ -44,8 +49,17 @@ export const HomeBoardPage: React.FC = () => {
   const onActiveRollAction = (action: ActiveRollAction) => {
     if (action === "exit") {
       setStudentRoll('')
-      setIsRollMode(false);
     }
+    else{
+      let studentRoll: RolllStateType=[];
+      studentList.forEach((el:Person) => {
+        if(el.rollType){
+          studentRoll.push({student_id:el.id,roll_state:el.rollType})
+        }
+      });
+      submitRoll({student_roll_states:[...studentRoll]})
+    }
+    setIsRollMode(false);
   };
   const getFilteredData = () => {
     if (searchText)
