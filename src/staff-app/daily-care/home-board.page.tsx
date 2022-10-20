@@ -65,19 +65,18 @@ export const HomeBoardPage: React.FC = () => {
     if (searchText)
       return studentList.filter((el: Person) => {
         return (
-          el.first_name.toLowerCase().includes(searchText.toLowerCase()) ||
-          el.last_name.toLowerCase().includes(searchText.toLowerCase())
+          (el.first_name+" "+el.last_name).toLowerCase().includes(searchText.toLowerCase())
         );
       });
     else {
       return studentList;
     }
   };
-  const sortProducts = (array: Array<any>) => {
+  const sortStudents = (array: Array<any>) => {
     switch (String(filterValue)) {
       case '1':
         return array.sort((a, b) =>
-          `${a.first_name } ${a.last_name}` < `${a.first_name} ${b.last_name}` ? -1 : 1
+          `${a.first_name } ${a.last_name}` < `${b.first_name} ${b.last_name}` ? -1 : 1
         );
       case "2":
         return array.sort((a, b) =>
@@ -120,7 +119,7 @@ export const HomeBoardPage: React.FC = () => {
                 No students found with entered name
               </CenteredContainer>
             ) : (
-              sortProducts(getRollBasedData(getFilteredData()))?.map((s: Person) => (
+              sortStudents(getRollBasedData(getFilteredData()))?.map((s: Person) => (
                 <StudentListTile
                   key={s.id}
                   isRollMode={isRollMode}
